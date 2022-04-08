@@ -1,38 +1,43 @@
 package com.hackerearth.sender.restcontroller.transaction;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 
+import org.apache.http.client.ClientProtocolException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hackerearth.sender.model.transaction.Transaction;
-import com.hackerearth.sender.utility.EncryptionUtility;
-import com.hackerearth.sender.utility.RESTUtility;
+import com.hackerearth.sender.service.transaction.TransactionService;
 
 @RestController
 @RequestMapping("/transaction/")
 public class TransactionController {
+	@Autowired
+	private TransactionService transactionService;
 	
 	@PostMapping("/add")
-	public JSONObject addTransaction(@RequestBody Transaction transaction) throws JsonMappingException, JsonProcessingException {
-		JSONObject obj = new JSONObject();
-		Map<String,Transaction> hm = new HashMap<>();
-		hm.put("transaction", transaction);
-		String s = EncryptionUtility.encrypt(new JSONObject(hm).toString());
-//		String a = EncryptionUtility.decrypt(s);
-//		JSONObject kk = new JSONObject(a);
-//		System.out.println();
-//		 ObjectMapper mapper = new ObjectMapper();
-//		 Transaction readValue = mapper.readValue(kk.get("aa").toString(), Transaction.class);
-//	        System.out.println("readValue = " + readValue.getAccountForm());
-		return new JSONObject();
+	public JSONObject addTransaction(@RequestBody Transaction transaction)  {
+		try {
+			boolean result = transactionService.addTransactionToQueue(transaction);
+			JSONObject response = new JSONObject();
+			if(result) {
+				response.put("result", "success");
+			}else {
+				response.put("result", "failure");
+			}
+			
+			return response;
+		} catch (Exception e) {
+			JSONObject response = new JSONObject();
+			response.put("result", "failure");
+		}
+		JSONObject response = new JSONObject();
+		response.put("result", "failure");
+		return response;
 	}
 	
 
